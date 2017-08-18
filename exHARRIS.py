@@ -1,29 +1,19 @@
-import numpy as np
 import cv2
-from matplotlib import pyplot as plt
+import numpy as np
 
-img = cv2.imread('simple.jpg',0)
+filename = 'simple.jpg'
+img = cv2.imread(filename)
+gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
-# Initiate FAST object with default values
-fast = cv2.FastFeatureDetector_create(threshold=25)
+gray = np.float32(gray)
+dst = cv2.cornerHarris(gray,2,3,0.04)
 
-# find and draw the keypoints
-kp = fast.detect(img,None)
-img2 = cv2.drawKeypoints(img, kp, None,color=(255,0,0))
+#result is dilated for marking the corners, not important
+dst = cv2.dilate(dst,None)
 
-print("Threshold: ", fast.getThreshold())
-print("nonmaxSuppression: ", fast.getNonmaxSuppression())
-print("neighborhood: ", fast.getType())
-print("Total Keypoints with nonmaxSuppression: ", len(kp))
+# Threshold for an optimal value, it may vary depending on the image.
+img[dst>0.01*dst.max()]=[0,0,255]
 
-cv2.imwrite('fast_true.png',img2)
-
-# Disable nonmaxSuppression
-fast.setNonmaxSuppression(0)
-kp = fast.detect(img,None)
-
-print "Total Keypoints without nonmaxSuppression: ", len(kp)
-
-img3 = cv2.drawKeypoints(img, kp, None, color=(255,0,0))
-
-cv2.imwrite('fast_false.png',img3)
+cv2.imshow('dst',img)
+if cv2.waitKey(0) & 0xff == 27:
+    cv2.destroyAllWindows()
